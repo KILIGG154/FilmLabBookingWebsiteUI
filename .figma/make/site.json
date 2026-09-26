@@ -1,0 +1,10 @@
+{
+  "description": "Book film lab services easily with a smooth, interactive website featuring dynamic page transitions and intuitive navigation for seamless user experience.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
