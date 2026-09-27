@@ -1,8 +1,9 @@
-import { NavLink, Outlet, Link, useLocation } from "react-router";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import { LogOut } from "lucide-react";
 import Logo from "./Logo";
+import { useAuth } from "../lib/auth";
 import { cn } from "../lib/utils";
 
 export type PortalNav = { to: string; label: string; icon: LucideIcon };
@@ -17,6 +18,8 @@ export default function PortalLayout({
   nav: PortalNav[];
 }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   return (
     <div className="min-h-screen bg-[#220f00] text-[var(--color-cream)]">
       <div className="mx-auto flex max-w-[1500px]">
@@ -56,12 +59,12 @@ export default function PortalLayout({
               </NavLink>
             ))}
           </nav>
-          <Link
-            to="/"
-            className="mt-4 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[var(--color-sand)] transition-colors hover:text-[var(--color-cream)]"
+          <button
+            onClick={() => { logout(); navigate("/"); }}
+            className="mt-4 flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-[var(--color-sand)] transition-colors hover:text-[var(--color-cream)]"
           >
             <LogOut size={17} /> Sign out
-          </Link>
+          </button>
         </aside>
 
         {/* Content */}

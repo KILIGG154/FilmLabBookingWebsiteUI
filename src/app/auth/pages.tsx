@@ -1,12 +1,19 @@
 import { useState, useRef } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useLocation } from "react-router";
 import { motion } from "framer-motion";
 import { Mail, Lock, User, ArrowRight, CheckCircle2 } from "lucide-react";
 import { AuthShell } from "./shell";
 import { Button, Input, Field } from "../../components/ui";
+import { useAuth, roleHome } from "../../lib/auth";
 
 export function LoginPage() {
   const nav = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
+  const [email, setEmail] = useState("ansel@studio.com");
+  const [remember, setRemember] = useState(true);
+  const from = (location.state as { from?: string } | null)?.from;
+
   return (
     <AuthShell>
       <h1 className="font-display text-4xl tracking-tight">Welcome back.</h1>
@@ -15,13 +22,22 @@ export function LoginPage() {
         className="mt-8 space-y-5"
         onSubmit={(e) => {
           e.preventDefault();
-          nav("/profile");
+          const user = login(email, remember);
+          // Return to the page that sent us here, otherwise the role's home.
+          nav(from ?? roleHome[user.role]);
         }}
       >
         <Field label="Email">
           <div className="relative">
             <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-sand)]" />
-            <Input type="email" required placeholder="you@studio.com" className="pl-11" defaultValue="ansel@studio.com" />
+            <Input
+              type="email"
+              required
+              placeholder="you@studio.com"
+              className="pl-11"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </div>
         </Field>
         <Field label="Password">
@@ -32,12 +48,27 @@ export function LoginPage() {
         </Field>
         <div className="flex items-center justify-between text-sm">
           <label className="flex items-center gap-2 text-[var(--color-sand)]">
-            <input type="checkbox" className="accent-[var(--color-amber)]" /> Remember me
+            <input
+              type="checkbox"
+              className="accent-[var(--color-amber)]"
+              checked={remember}
+              onChange={(e) => setRemember(e.target.checked)}
+            />{" "}
+            Remember me
           </label>
           <Link to="/reset-password" className="text-[var(--color-amber)] hover:underline">Forgot password?</Link>
         </div>
         <Button size="lg" className="w-full">Sign in <ArrowRight size={17} /></Button>
       </form>
+      <div className="mt-6 rounded-xl border border-[var(--color-hairline)] bg-[var(--color-ink-2)] p-4 text-xs leading-relaxed text-[var(--color-sand)]">
+        <span className="font-mono uppercase tracking-widest text-[var(--color-amber)]">Demo logins</span>
+        <ul className="mt-2 space-y-1">
+          <li>ansel@studio.com — Photographer</li>
+          <li>owner@lab.com — Film Lab Owner</li>
+          <li>mod@halide.com — Moderator</li>
+          <li>admin@halide.com — Admin</li>
+        </ul>
+      </div>
       <p className="mt-6 text-sm text-[var(--color-sand)]">
         New here? <Link to="/register" className="text-[var(--color-cream)] underline">Create an account</Link>
       </p>
@@ -47,6 +78,9 @@ export function LoginPage() {
 
 export function RegisterPage() {
   const nav = useNavigate();
+  const { register } = useAuth();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   return (
     <AuthShell
       aside={{
@@ -61,19 +95,20 @@ export function RegisterPage() {
         className="mt-8 space-y-5"
         onSubmit={(e) => {
           e.preventDefault();
+          register(name, email);
           nav("/verify");
         }}
       >
         <Field label="Full name">
           <div className="relative">
             <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-sand)]" />
-            <Input required placeholder="Ansel Adams" className="pl-11" />
+            <Input required placeholder="Ansel Adams" className="pl-11" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
         </Field>
         <Field label="Email">
           <div className="relative">
             <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-sand)]" />
-            <Input type="email" required placeholder="you@studio.com" className="pl-11" />
+            <Input type="email" required placeholder="you@studio.com" className="pl-11" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
         </Field>
         <Field label="Password">
@@ -115,7 +150,7 @@ export function VerifyPage() {
     >
       <h1 className="font-display text-4xl tracking-tight">Verify your email.</h1>
       <p className="mt-2 text-[var(--color-sand)]">Enter the code we sent to your inbox.</p>
-      <form className="mt-8" onSubmit={(e) => { e.preventDefault(); nav("/login"); }}>
+      <form className="mt-8" onSubmit={(e) => { e.preventDefault(); nav("/profile"); }}>
         <div className="flex justify-between gap-2">
           {code.map((c, i) => (
             <input

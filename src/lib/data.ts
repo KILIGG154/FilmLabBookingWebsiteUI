@@ -89,6 +89,137 @@ export const services = [
   { name: "Archival Sleeve & Return", price: 6, unit: "per order", note: "Acid-free storage + shipping back" },
 ];
 
+export type TrackStage = {
+  key: string;
+  title: string;
+  detail: string;
+  at: string; // human timestamp, empty if not reached
+};
+
+export type Order = {
+  id: string;
+  lab: string;
+  labSlug: string;
+  city: string;
+  rolls: number;
+  film: string;
+  services: string[];
+  total: number;
+  placed: string;
+  eta: string;
+  status: string;
+  tone: string;
+  // index of the stage currently in progress (0-based). Stages before are done.
+  currentStage: number;
+  stages: TrackStage[];
+};
+
+const STAGE_TEMPLATE: Omit<TrackStage, "at">[] = [
+  { key: "placed", title: "Order placed", detail: "Booking confirmed and payment authorized." },
+  { key: "label", title: "Shipping label ready", detail: "Prepaid label emailed — drop your rolls in the post." },
+  { key: "received", title: "Film received at lab", detail: "Your rolls arrived and were logged in." },
+  { key: "developing", title: "Developing", detail: "Negatives running through the chemistry line." },
+  { key: "scanning", title: "Scanning", detail: "High-resolution scans in progress." },
+  { key: "qc", title: "Quality check", detail: "Dust removal, colour balance and review." },
+  { key: "shipped", title: "Shipped back", detail: "Negatives sleeved and returned to you." },
+  { key: "delivered", title: "Delivered", detail: "Scans available and negatives on the way." },
+];
+
+// Build a stage list where the first `current` stages carry timestamps.
+function buildStages(current: number, times: string[]): TrackStage[] {
+  return STAGE_TEMPLATE.map((s, i) => ({ ...s, at: i <= current ? times[i] ?? "" : "" }));
+}
+
+export const orders: Order[] = [
+  {
+    id: "A-2291",
+    lab: "Silverhalide Atelier",
+    labSlug: "silverhalide-atelier",
+    city: "Portland, OR",
+    rolls: 3,
+    film: "Portra 400",
+    services: ["Develop & Scan — 35mm", "High-Res Scan Upgrade"],
+    total: 69,
+    placed: "Sep 22, 2026",
+    eta: "Sep 28, 2026",
+    status: "Scanning",
+    tone: "text-[var(--color-amber)]",
+    currentStage: 4,
+    stages: buildStages(4, [
+      "Sep 22 · 09:14",
+      "Sep 22 · 09:15",
+      "Sep 24 · 11:02",
+      "Sep 25 · 08:40",
+      "Sep 26 · 15:20",
+    ]),
+  },
+  {
+    id: "A-2287",
+    lab: "Goldenhour Collective",
+    labSlug: "goldenhour-collective",
+    city: "Austin, TX",
+    rolls: 1,
+    film: "Ektar 100",
+    services: ["Develop & Scan — 120", "Drum Scan"],
+    total: 34,
+    placed: "Sep 18, 2026",
+    eta: "Sep 24, 2026",
+    status: "Shipped back",
+    tone: "text-[var(--color-sand)]",
+    currentStage: 6,
+    stages: buildStages(6, [
+      "Sep 18 · 14:30",
+      "Sep 18 · 14:31",
+      "Sep 20 · 10:12",
+      "Sep 21 · 09:05",
+      "Sep 22 · 13:44",
+      "Sep 23 · 16:20",
+      "Sep 24 · 08:15",
+    ]),
+  },
+  {
+    id: "A-2280",
+    lab: "North Loop Film Co.",
+    labSlug: "north-loop-film",
+    city: "Minneapolis, MN",
+    rolls: 5,
+    film: "HP5 Plus",
+    services: ["Develop & Scan — 35mm"],
+    total: 70,
+    placed: "Sep 25, 2026",
+    eta: "Oct 2, 2026",
+    status: "Developing",
+    tone: "text-[var(--color-amber)]",
+    currentStage: 3,
+    stages: buildStages(3, ["Sep 25 · 18:02", "Sep 25 · 18:03", "Sep 27 · 09:30", "Sep 27 · 14:10"]),
+  },
+  {
+    id: "A-2261",
+    lab: "Tidewater Darkroom",
+    labSlug: "tidewater-darkroom",
+    city: "Savannah, GA",
+    rolls: 2,
+    film: "Provia 100F",
+    services: ["Develop & Scan — 35mm", "Archival Sleeve & Return"],
+    total: 40,
+    placed: "Sep 5, 2026",
+    eta: "Sep 13, 2026",
+    status: "Delivered",
+    tone: "text-[var(--color-sand)]",
+    currentStage: 7,
+    stages: buildStages(7, [
+      "Sep 5 · 11:00",
+      "Sep 5 · 11:01",
+      "Sep 8 · 09:20",
+      "Sep 9 · 10:15",
+      "Sep 10 · 14:40",
+      "Sep 11 · 16:05",
+      "Sep 12 · 09:30",
+      "Sep 13 · 12:48",
+    ]),
+  },
+];
+
 export const steps = [
   { n: "01", title: "Pick your lab", body: "Browse vetted labs by process, format and turnaround." },
   { n: "02", title: "Book a service", body: "Choose develop, scan and finishing options for each roll." },

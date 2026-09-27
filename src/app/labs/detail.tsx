@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useParams, useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import { Star, MapPin, Clock, Check, ArrowLeft } from "lucide-react";
 import { PageShell, Reveal } from "../../components/motion";
 import { Button, Badge, Eyebrow } from "../../components/ui";
 import { filmLabs, services } from "../../lib/data";
+import { useAuth } from "../../lib/auth";
 import { cn } from "../../lib/utils";
 
 export default function LabDetailPage() {
   const { slug } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const lab = filmLabs.find((l) => l.slug === slug) ?? filmLabs[0];
   const [selected, setSelected] = useState<string[]>([services[0].name]);
   const [rolls, setRolls] = useState(1);
@@ -16,9 +19,29 @@ export default function LabDetailPage() {
   const toggle = (name: string) =>
     setSelected((prev) => (prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]));
 
-  const perRoll = services.filter((s) => selected.includes(s.name) && s.unit !== "per order").reduce((a, s) => a + s.price, 0);
-  const flat = services.filter((s) => selected.includes(s.name) && s.unit === "per order").reduce((a, s) => a + s.price, 0);
+  const chosen = services.filter((s) => selected.includes(s.name));
+  const perRoll = chosen.filter((s) => s.unit !== "per order").reduce((a, s) => a + s.price, 0);
+  const flat = chosen.filter((s) => s.unit === "per order").reduce((a, s) => a + s.price, 0);
   const total = perRoll * rolls + flat;
+
+  const handleBook = () => {
+    // Guests sign in first, then land back here to continue.
+    if (!user) {
+      navigate("/login", { state: { from: `/labs/${lab.slug}` } });
+      return;
+    }
+    // Signed in — head to the Stripe checkout with the order details.
+    navigate("/checkout", {
+      state: {
+        labSlug: lab.slug,
+        labName: lab.name,
+        city: lab.city,
+        items: chosen.map((s) => ({ name: s.name, price: s.price, unit: s.unit })),
+        rolls,
+        total,
+      },
+    });
+  };
 
   return (
     <PageShell>
@@ -116,9 +139,9 @@ export default function LabDetailPage() {
                   ${total}
                 </motion.span>
               </div>
-              <Link to="/register" className="mt-5 block">
-                <Button size="lg" className="w-full">Book this lab</Button>
-              </Link>
+              <Button size="lg" className="mt-5 w-full" onClick={handleBook}>
+                {user ? "Book this lab" : "Sign in to book"}
+              </Button>
             </div>
           </Reveal>
         </div>

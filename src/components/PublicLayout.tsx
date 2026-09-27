@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Link, NavLink, Outlet, useLocation } from "react-router";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router";
 import { AnimatePresence, motion, useScroll, useMotionValueEvent } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { Button } from "./ui";
 import Logo from "./Logo";
 import { menuVariants, menuItemVariants } from "../lib/motion";
+import { useAuth, roleHome } from "../lib/auth";
 import { cn } from "../lib/utils";
 
 const nav = [
@@ -17,6 +18,8 @@ export default function PublicLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const { scrollYProgress, scrollY } = useScroll();
 
   useMotionValueEvent(scrollY, "change", (y) => setScrolled(y > 24));
@@ -69,12 +72,33 @@ export default function PublicLayout() {
           </nav>
 
           <div className="flex items-center gap-3">
-            <Link to="/login" className="hidden md:block">
-              <Button variant="ghost" size="sm">Sign in</Button>
-            </Link>
-            <Link to="/register" className="hidden md:block">
-              <Button size="sm">Book a lab</Button>
-            </Link>
+            {user ? (
+              <>
+                <Link to={roleHome[user.role]} className="hidden items-center gap-2.5 md:flex">
+                  <span className="grid h-9 w-9 place-items-center rounded-full bg-[var(--color-sand)] font-display text-sm text-[var(--color-ink)]">
+                    {user.name.charAt(0)}
+                  </span>
+                  <span className="text-sm text-[var(--color-cream)]">{user.name.split(" ")[0]}</span>
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="hidden md:inline-flex"
+                  onClick={() => { logout(); navigate("/"); }}
+                >
+                  Sign out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="hidden md:block">
+                  <Button variant="ghost" size="sm">Sign in</Button>
+                </Link>
+                <Link to="/register" className="hidden md:block">
+                  <Button size="sm">Book a lab</Button>
+                </Link>
+              </>
+            )}
             <button
               onClick={() => setMenuOpen(true)}
               className="grid h-11 w-11 place-items-center rounded-full border border-[var(--color-hairline)] text-[var(--color-cream)] md:hidden"

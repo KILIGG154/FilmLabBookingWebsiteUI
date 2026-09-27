@@ -5,6 +5,7 @@ import { PageShell, Reveal, GradientField } from "../../components/motion";
 import { Button, Badge, Eyebrow } from "../../components/ui";
 import { staggerContainer, fadeUp } from "../../lib/motion";
 import { filmLabs, services, steps } from "../../lib/data";
+import { useAuth } from "../../lib/auth";
 
 const popularServices = [
   { name: "Develop & Scan — 35mm", price: 14, unit: "per roll", bookings: 8420, trend: "+12% this month" },
@@ -14,6 +15,7 @@ const popularServices = [
 ];
 
 export default function HomePage() {
+  const { user } = useAuth();
   return (
     <PageShell>
       {/* HERO */}
@@ -43,8 +45,8 @@ export default function HomePage() {
                   Browse film labs <ArrowUpRight size={18} />
                 </Button>
               </Link>
-              <Link to="/register">
-                <Button variant="outline" size="lg">Create an account</Button>
+              <Link to={user ? "/profile" : "/register"}>
+                <Button variant="outline" size="lg">{user ? "My bookings" : "Create an account"}</Button>
               </Link>
             </motion.div>
             <motion.div variants={fadeUp} className="mt-10 flex items-center gap-6 text-sm text-[var(--color-cream)]/80">
@@ -167,7 +169,7 @@ export default function HomePage() {
               Every lab sets its own rates — here's a typical menu. You'll always see the full total before you confirm a
               booking.
             </p>
-            <Link to="/register" className="mt-8 inline-block">
+            <Link to={user ? "/labs" : "/register"} className="mt-8 inline-block">
               <Button size="lg">Start a booking</Button>
             </Link>
           </Reveal>
